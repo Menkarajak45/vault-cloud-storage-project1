@@ -1,207 +1,466 @@
-# Vault — Cloud File Storage (MVP)
+# ☁️ Vault — Cloud File Storage
 
-A minimal working slice of the full spec: **auth + nested folders + file upload/download + trash/star/search**.
-Backend is Java 17 + Spring Boot; frontend is React + Vite + Tailwind.
+A secure cloud-based file storage and sharing web application built with **Java Spring Boot** and **React**. Vault provides users with authentication, file and folder management, search, sharing, public links, trash, starred files, and an administrator dashboard.
 
-This is intentionally scoped down from the full 2-week plan — sharing/permissions, link expiry,
-file versioning, and previews are **not** included yet. See "What's not built yet" below.
+## 🚀 Features
 
-## Project layout
+### 🔐 Authentication & Security
 
+* User registration and login
+* JWT-based authentication
+* BCrypt password hashing
+* Forgot password and password reset
+* Role-based authorization
+* Separate `ADMIN` and `USER` platform roles
+
+### 📁 File Management
+
+* Upload files
+* Download files
+* Rename files
+* Move files
+* Delete files permanently
+* Trash and restore files
+* Star files
+* Search files
+* Storage quota tracking
+* 5 GB default storage quota
+
+### 📂 Folder Management
+
+* Create folders
+* Create nested folders
+* Rename folders
+* Move folders
+* Star folders
+* Trash and restore folders
+* Search folders
+* Protection against moving folders into their own descendants
+
+### 👥 File Sharing
+
+* Share files with registered users
+* Viewer permission
+* Editor permission
+* Owner permission
+* Revoke file access
+* Shared with Me section
+
+### 🔗 Public File Links
+
+* Generate public sharing links
+* Optional password protection
+* Optional link expiration
+* Preview shared file information
+* Password-protected downloads
+* Revoke public links
+* Expired/revoked links return appropriate errors
+
+### 👨‍💼 Admin Dashboard
+
+* Admin and User roles
+* Platform-wide statistics
+* View total users
+* View total admins
+* View total files
+* View total folders
+* View storage usage
+* View registered users
+* Enable/disable user accounts
+* View files across users
+* Secure admin-only API endpoints
+
+### 🎨 User Interface
+
+* Responsive web interface
+* Grid-based file layout
+* My Drive
+* Starred
+* Trash
+* Shared with Me
+* Search and filtering
+* File upload with progress indication
+
+---
+
+## 🛠️ Technologies Used
+
+### Frontend
+
+* React
+* Vite
+* JavaScript
+* React Router
+* Tailwind CSS
+* HTML5
+* CSS3
+
+### Backend
+
+* Java 17
+* Spring Boot
+* Spring Security
+* JWT
+* REST APIs
+* Maven
+* BCrypt
+
+### Database
+
+* H2 Database for local development
+* PostgreSQL support for deployment
+
+### Tools
+
+* Git
+* GitHub
+* VS Code
+* IntelliJ IDEA
+* Postman
+
+---
+
+## 🏗️ Project Structure
+
+```text
+vault-cloud-storage-project/
+│
+├── backend/
+│   ├── src/
+│   │   └── main/
+│   │       ├── java/
+│   │       └── resources/
+│   ├── .env.example
+│   └── pom.xml
+│
+├── frontend/
+│   ├── src/
+│   ├── public/
+│   ├── .env.example
+│   ├── package.json
+│   └── vite.config.js
+│
+├── .gitignore
+└── README.md
 ```
-cloudstorage/
-├── backend/     Spring Boot API (Java 17, Maven)
-└── frontend/    React app (Vite, Tailwind)
-```
 
-## Backend — run it
+---
 
-Requirements: Java 17+, Maven (or use the included `mvnw` if you add one).
+## ⚙️ Requirements
+
+Make sure you have installed:
+
+* Java 17 or later
+* Maven
+* Node.js 18 or later
+* npm
+* Git
+
+---
+
+## 🔧 Backend Setup
+
+Navigate to the backend folder:
 
 ```bash
 cd backend
+```
+
+Create a `.env` file using `.env.example` as a reference.
+
+Example:
+
+```env
+FRONTEND_URL=http://localhost:5173
+
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your-gmail@gmail.com
+MAIL_PASSWORD=your-gmail-app-password
+
+ADMIN_EMAIL=your-admin-email@gmail.com
+ADMIN_PASSWORD=your-admin-password
+```
+
+**Never upload the real `.env` file to GitHub.**
+
+Start the backend:
+
+```bash
 mvn spring-boot:run
 ```
 
-The API starts on `http://localhost:8080`. It uses an embedded, file-based H2 database
-(`./data/clouddb`) — no Postgres/Docker setup needed to try it out. Uploaded file bytes are
-stored on local disk under `./storage/`.
+The backend runs on:
 
-> ⚠️ I wasn't able to compile this in the sandbox that generated it — that environment's network
-> allowlist doesn't include Maven Central, so `mvn` couldn't resolve dependencies. The code was
-> written carefully against Spring Boot 3.3 / Spring Security 6 APIs, but please run
-> `mvn spring-boot:run` locally as your first step and let me know if anything doesn't compile —
-> happy to fix it live.
+```text
+http://localhost:8080
+```
 
-Before deploying anywhere real, replace the demo JWT secret in `application.yml`
-(`app.jwt.secret`) with a securely generated one, ideally injected via an environment variable.
+---
 
-### API summary
+## 💻 Frontend Setup
 
-| Area | Endpoints |
-|---|---|
-| Auth | `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me` |
-| Folders | `GET /api/folders?folderId=`, `POST /api/folders`, `PATCH /api/folders/{id}/rename`, `PATCH /api/folders/{id}/move`, `PATCH /api/folders/{id}/star`, `POST /api/folders/{id}/trash`, `POST /api/folders/{id}/restore`, `GET /api/folders/trash`, `GET /api/folders/starred`, `GET /api/folders/search?q=` |
-| Files | `POST /api/files/upload` (multipart), `GET /api/files/{id}/download`, `PATCH /api/files/{id}/rename`, `PATCH /api/files/{id}/move`, `PATCH /api/files/{id}/star`, `POST /api/files/{id}/trash`, `POST /api/files/{id}/restore`, `DELETE /api/files/{id}` (permanent), `GET /api/files/trash`, `GET /api/files/starred`, `GET /api/files/search?q=` |
-
-All endpoints except `/api/auth/*` require `Authorization: Bearer <token>`.
-
-## Frontend — run it
-
-Requirements: Node 18+.
+Open another terminal and navigate to the frontend:
 
 ```bash
 cd frontend
+```
+
+Install dependencies:
+
+```bash
 npm install
-cp .env.example .env   # points at http://localhost:8080/api by default
+```
+
+Create a `.env` file using `.env.example`:
+
+```env
+VITE_API_URL=http://localhost:8080/api
+```
+
+Start the development server:
+
+```bash
 npm run dev
 ```
 
-Opens on `http://localhost:5173`. Sign up, then you land on **My Drive** — upload files,
-create nested folders, star and trash items, and search across your drive.
+The frontend runs on:
 
-`npm run build` produces a production bundle in `frontend/dist/` (verified working).
-
-## What's built
-
-- Email/password auth with JWT, BCrypt password hashing
-- Nested folder creation, rename, move, star, trash/restore, search
-- File upload (drag-and-drop, progress bar), download, rename, move, star,
-  trash/restore, permanent delete, search
-- Per-user storage quota tracking (5GB default, enforced on upload)
-- Trash and Starred views
-
-## Admin account & dashboard
-
-Platform-level authorization now has two roles: `ADMIN` and `USER`. This is separate from
-file-sharing permissions (`OWNER`/`EDITOR`/`VIEWER`), which aren't implemented yet.
-
-**Creating the first admin** — no admin is hardcoded. Set two environment variables before
-starting the backend for the first time:
-
-```bash
-export ADMIN_EMAIL=admin@example.com
-export ADMIN_PASSWORD=change-this-password   # 8+ chars
-mvn spring-boot:run
+```text
+http://localhost:5173
 ```
 
-On startup, `AdminBootstrapRunner` checks whether an admin already exists. If not — and both
-env vars are set — it creates exactly one admin with a BCrypt-hashed password (the password is
-never logged). On every later startup it's a no-op, so it's safe to leave the env vars set.
+---
 
-If you forget to set them, the app still starts; you'll just see a log warning and no admin
-account until you set the vars and restart.
+## 👨‍💼 Admin Account
 
-**Logging in as admin:** go to `/login` and sign in with the ADMIN_EMAIL/ADMIN_PASSWORD you set.
-You'll be redirected to `/admin/dashboard` instead of the regular My Drive.
+The first administrator is created using environment variables.
 
-**Admin dashboard** shows: total users, admins, files, folders, and storage used; a Users tab
-to view everyone and enable/disable accounts (you can't disable your own); a Files tab showing
-every file across all users with owner and trash status.
+Set:
 
-### Admin API
+```env
+ADMIN_EMAIL=your-admin-email@gmail.com
+ADMIN_PASSWORD=your-admin-password
+```
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| GET | `/api/admin/dashboard` | Platform-wide stats |
-| GET | `/api/admin/users` | List all users |
-| GET | `/api/admin/users/{id}` | One user's detail |
-| PUT | `/api/admin/users/{id}/status` | `{ "enabled": true/false }` — suspend/reinstate |
-| GET | `/api/admin/files?trashed=` | All files across all users, optional trash filter |
-| GET | `/api/admin/activities` | Returns `{ activities: [], implemented: false }` — no Activity entity exists yet, this is a stub with a stable contract for later |
+When the backend starts, the application checks whether an administrator already exists.
 
-All of `/api/admin/**` is enforced by Spring Security itself (`hasRole("ADMIN")`), not just a
-check inside the controller — so even a bug in a controller method can't accidentally expose it.
+If no administrator exists, it creates the initial admin account with a BCrypt-hashed password.
 
-### Testing the two roles
+The admin can then log in through the normal login page and access:
 
-1. Start the backend with `ADMIN_EMAIL`/`ADMIN_PASSWORD` set, confirm the log line
-   `Created initial admin account for ...`.
-2. `POST /api/auth/login` as the admin → returns a JWT with `"role": "ADMIN"` in the user object.
-3. `GET /api/admin/dashboard` with that token → 200 with stats.
-4. Register a normal user via `/api/auth/register`, log in, and call `/api/admin/dashboard`
-   with *that* token → 403 Forbidden (JSON body, not an empty response).
-5. Call any protected endpoint with no token, or a garbage token → 401 Unauthorized.
-6. As admin, `PUT /api/admin/users/{someUserId}/status` with `{"enabled": false}`, then try to
-   log in as that user → 403 "This account has been disabled."
+```text
+/admin/dashboard
+```
 
-## Sharing & permissions
+---
 
-Two separate axes now exist:
-- **Platform role** (`ADMIN` / `USER`) — covered above.
-- **File-level permission** (`OWNER` / `EDITOR` / `VIEWER`) — new in this pass, and completely
-  independent of platform role. An ADMIN has no special file access; being an admin doesn't
-  grant OWNER/EDITOR/VIEWER on anyone's files.
+## 🔐 File Permissions
 
-Enforcement lives entirely in `FileAccessService` on the backend — every file endpoint
-(download, rename, trash, restore, permanent delete) resolves the caller's access level from
-there before doing anything, so it's enforced at the API/storage layer, not just hidden in the UI.
+Vault uses three file-level permissions:
 
-| Permission | Can do |
-|---|---|
-| OWNER | Everything: view, rename, move, star, trash/restore, permanently delete, manage shares & public links |
-| EDITOR | View/download, rename, trash, restore |
-| VIEWER | View/download only |
+| Permission | Access                                    |
+| ---------- | ----------------------------------------- |
+| OWNER      | Full control                              |
+| EDITOR     | View, download, rename, trash and restore |
+| VIEWER     | View and download                         |
 
-Two deliberate simplifications, called out in code comments (`FileService`, `FileAccessService`):
-- **Move** is owner-only — an editor moving a file into "your" folder tree doesn't make sense
-  when folders aren't shared, only individual files are.
-- **Star** is owner-only — `starred` is a single boolean on the file, not per-viewer, so letting
-  an editor toggle it would silently change what the owner sees too.
+Platform roles are separate from file permissions:
 
-### Sharing with a specific person
+| Platform Role | Purpose                                                   |
+| ------------- | --------------------------------------------------------- |
+| ADMIN         | Manage platform users and view platform-level information |
+| USER          | Normal application user                                   |
 
-In the UI: open a file's `⋮` menu → **Share** → enter their email → pick Editor or Viewer.
-They must already have an account (sharing is by registered user, not open invite).
+An administrator does not automatically receive access to another user's files.
 
-API: `POST /api/shares { fileId, email, permission }` (owner-only), `GET /api/shares/file/{fileId}`
-to see who has access, `DELETE /api/shares/{shareId}` to revoke, `GET /api/shares/shared-with-me`
-for the recipient's view.
+---
 
-Shared files show up under **Shared with me** in the sidebar — they do *not* appear mixed into
-the recipient's own My Drive/folder tree, since folder sharing isn't implemented.
+## 🔗 Public Sharing
 
-### Public links
+File owners can generate public links with optional:
 
-Same Share modal → **Public link** → optional password, optional expiry in hours → generates
-`https://yourapp.com/shared/{token}`. Anyone with that link can see file info; if a password is
-set, they must enter it before the download button unlocks.
+* Password protection
+* Expiration time
 
-API (all under `/api/public-links`):
-- `POST /api/public-links` (auth, owner) — create
-- `GET /api/public-links/file/{fileId}` (auth, owner) — list active links
-- `DELETE /api/public-links/{id}` (auth, owner) — revoke
-- `GET /api/public-links/{token}/preview` (public) — filename/size/whether a password is needed
-- `POST /api/public-links/{token}/unlock` (public) — check a password
-- `GET /api/public-links/{token}/download?password=` (public) — streams the file
+A public link can be accessed without logging in.
 
-Only those three anonymous routes are `permitAll` in `SecurityConfig`, matched precisely
-(`/api/public-links/*/preview`, `/*/unlock`, `/*/download`) so `POST /api/public-links` (creating
-a link) still requires authentication and ownership.
+If password protection is enabled, the recipient must provide the correct password before downloading the file.
 
-Revoked or expired links return `410 Gone`; a wrong password on download returns `401`.
+Revoked or expired links are rejected by the backend.
 
-### What's still a TODO here
+---
 
-- Activity logging (endpoint exists, returns empty — no `Activity` entity yet)
-- Folder-level sharing (only individual files can be shared/linked right now)
-- Admin user detail page in the UI (backend endpoint exists; frontend only lists + toggles status)
-- Pagination on `/api/admin/users`, `/api/admin/files` (fine at MVP scale, would matter at scale)
+## 🔒 Security
 
+The application implements several security measures:
 
+* JWT authentication
+* BCrypt password hashing
+* Spring Security authorization
+* Role-based access control
+* Protected API endpoints
+* Admin-only API routes
+* File-level access control
+* Password-protected public links
+* Environment variables for sensitive configuration
 
+Sensitive configuration such as passwords, email credentials, and secrets should never be committed to GitHub.
 
-- Sharing (Viewer/Editor roles) and public share links with expiry/password
-- File versioning, previews, activity logs, tags
-- Swap local disk storage for S3/Supabase (the storage layer, `LocalFileStorage.java`,
-  is isolated behind a small interface-like surface specifically so this swap is easy later)
+---
 
-Happy to build out any of these next — just say which.
+## 📡 API Overview
 
+### Authentication
 
-## MVP completion updates
-- Public link passwords can be changed/removed from the Share dialog without exposing the BCrypt hash.
-- Search now supports type/starred filters and pagination.
-- Folder moves reject descendant cycles.
-- PostgreSQL can be enabled with DATABASE_URL/DB_DRIVER/DB_USERNAME/DB_PASSWORD; H2 remains the local fallback.
-- Google OAuth2 login is wired through Spring Security; configure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.
+```text
+POST /api/auth/register
+POST /api/auth/login
+GET  /api/auth/me
+```
+
+### Files
+
+```text
+POST   /api/files/upload
+GET    /api/files/{id}/download
+PATCH  /api/files/{id}/rename
+PATCH  /api/files/{id}/move
+PATCH  /api/files/{id}/star
+POST   /api/files/{id}/trash
+POST   /api/files/{id}/restore
+DELETE /api/files/{id}
+GET    /api/files/trash
+GET    /api/files/starred
+GET    /api/files/search
+```
+
+### Folders
+
+```text
+GET    /api/folders
+POST   /api/folders
+PATCH  /api/folders/{id}/rename
+PATCH  /api/folders/{id}/move
+PATCH  /api/folders/{id}/star
+POST   /api/folders/{id}/trash
+POST   /api/folders/{id}/restore
+GET    /api/folders/trash
+GET    /api/folders/starred
+GET    /api/folders/search
+```
+
+### Sharing
+
+```text
+POST   /api/shares
+GET    /api/shares/file/{fileId}
+DELETE /api/shares/{shareId}
+GET    /api/shares/shared-with-me
+```
+
+### Public Links
+
+```text
+POST   /api/public-links
+GET    /api/public-links/file/{fileId}
+DELETE /api/public-links/{id}
+GET    /api/public-links/{token}/preview
+POST   /api/public-links/{token}/unlock
+GET    /api/public-links/{token}/download
+```
+
+### Admin
+
+```text
+GET /api/admin/dashboard
+GET /api/admin/users
+GET /api/admin/users/{id}
+PUT /api/admin/users/{id}/status
+GET /api/admin/files
+GET /api/admin/activities
+```
+
+---
+
+## 🗄️ Database & Storage
+
+For local development, Vault uses an embedded file-based H2 database.
+
+The application stores:
+
+* User information
+* Folder information
+* File metadata
+* Sharing information
+* Public link information
+
+Uploaded file content is stored separately on local disk during local development.
+
+For production deployment, PostgreSQL can be configured and local storage can be replaced with cloud object storage such as Amazon S3 or another compatible storage service.
+
+---
+
+## 🧪 Testing
+
+The application can be tested using:
+
+* Browser
+* Postman
+* REST API requests
+
+Important scenarios include:
+
+1. Register a new user.
+2. Log in and receive a JWT.
+3. Upload a file.
+4. Create nested folders.
+5. Move and rename files.
+6. Star and trash files.
+7. Restore deleted files.
+8. Share a file with another registered user.
+9. Test Viewer and Editor permissions.
+10. Generate a password-protected public link.
+11. Test an expired public link.
+12. Log in as an administrator.
+13. Access the Admin Dashboard.
+14. Disable a user account.
+15. Verify unauthorized users receive appropriate authentication/authorization errors.
+
+---
+
+## 📌 Future Improvements
+
+Possible future improvements include:
+
+* File versioning
+* File previews
+* Activity logging
+* Folder-level sharing
+* Tags and labels
+* Pagination for large datasets
+* Cloud object storage integration
+* Advanced storage plans
+* Improved admin user-detail interface
+
+---
+
+## 🎯 Project Objective
+
+The objective of Vault is to develop a secure and user-friendly cloud file storage platform where users can store, organize, search, manage, and share their digital files while maintaining authentication, authorization, and access control.
+
+The project demonstrates full-stack development using a **React frontend** and **Java Spring Boot backend**, with REST APIs connecting the application to its database and storage layer.
+
+---
+
+## 👩‍💻 Author
+
+**Menka Kumari**
+
+B.Sc. Information Technology Student
+
+---
+
+## 📜 License
+
+This project was developed for educational and academic purposes.
